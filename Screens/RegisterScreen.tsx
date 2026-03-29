@@ -37,6 +37,7 @@ const RegisterScreen = ({ navigation }: Props) => {
     setIsModalVisible(true);
   };
 
+
   const handleVerifySuccess = (code: string) => {
     console.log("Verified with:", code);
     setIsModalVisible(false);

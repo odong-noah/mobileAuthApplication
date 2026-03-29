@@ -10,7 +10,8 @@ import {
   StatusBar,
   Keyboard
 } from 'react-native';
-import { ShieldCheck, X, } from 'lucide-react-native';
+// CHANGED: RefreshCcw to RefreshCw (or RotateCw)
+import { ShieldCheck, X, RefreshCw } from 'lucide-react-native';
 
 interface VerificationModalProps {
   visible: boolean;
@@ -24,17 +25,16 @@ const VerificationModal = ({ visible, onClose, email, onVerify }: VerificationMo
   const [loading, setLoading] = useState(false);
   const [timer, setTimer] = useState(59);
   
-  // Pre-allocate the array to avoid indexing errors
   const inputs = useRef<Array<TextInput | null>>([null, null, null, null]);
 
   useEffect(() => {
     if (visible) {
       setCode(['', '', '', '']);
       setTimer(59);
-      // Give the modal 200ms to animate in before popping keyboard
-      setTimeout(() => {
+      const focusTimeout = setTimeout(() => {
         inputs.current[0]?.focus();
-      }, 200);
+      }, 300);
+      return () => clearTimeout(focusTimeout);
     }
   }, [visible]);
 
@@ -77,12 +77,11 @@ const VerificationModal = ({ visible, onClose, email, onVerify }: VerificationMo
   return (
     <Modal 
       visible={visible} 
-      animationType="fade" // Use fade for faster perceived response
+      animationType="fade" 
       transparent={true} 
       onRequestClose={onClose}
     >
       <View style={styles.overlay}>
-        {/* We move StatusBar here to ensure it doesn't conflict with Modal render */}
         {visible && <StatusBar backgroundColor="#439acc" barStyle="light-content" />}
         
         <View style={styles.container}>
@@ -94,20 +93,23 @@ const VerificationModal = ({ visible, onClose, email, onVerify }: VerificationMo
             <View style={styles.iconCircle}>
               <ShieldCheck color="#439acc" size={36} />
             </View>
+            
             <Text style={styles.title}>Verify Email</Text>
-            <Text style={styles.description}>Sent to {email || 'your email'}</Text>
+            <Text style={styles.description}>
+              Enter the code sent to{"\n"}
+              <Text style={styles.emailText}>{email || 'your email'}</Text>
+            </Text>
 
             <View style={styles.otpRow}>
               {code.map((digit, index) => (
                 <TextInput
                   key={index}
-                  // FIX: Use curly braces so the function returns VOID (Standard React/TS requirement)
-                  ref={(el) => { 
-                    inputs.current[index] = el; 
-                  }}
+                  ref={(el) => { inputs.current[index] = el; }} 
                   style={[styles.otpBox, digit ? styles.otpBoxActive : null]}
                   maxLength={1}
                   keyboardType="number-pad"
+                  placeholder="0"
+                  placeholderTextColor="#CBD5E1"
                   onChangeText={(text) => handleInput(text, index)}
                   onKeyPress={(e) => handleKeyPress(e, index)}
                   value={digit}
@@ -128,7 +130,9 @@ const VerificationModal = ({ visible, onClose, email, onVerify }: VerificationMo
               {timer > 0 ? (
                 <Text style={styles.timerText}>Resend in {timer}s</Text>
               ) : (
-                <TouchableOpacity onPress={() => setTimer(59)}>
+                <TouchableOpacity onPress={() => setTimer(59)} style={styles.resendBtn}>
+                   {/* UPDATED ICON USAGE HERE */}
+                  <RefreshCw size={14} color="#439acc" style={{marginRight: 5}} />
                   <Text style={styles.resendLink}>Resend Code</Text>
                 </TouchableOpacity>
               )}
@@ -147,15 +151,28 @@ const styles = StyleSheet.create({
   content: { alignItems: 'center' },
   iconCircle: { width: 70, height: 70, borderRadius: 35, backgroundColor: '#E0F2FE', justifyContent: 'center', alignItems: 'center', marginBottom: 15 },
   title: { fontSize: 24, fontWeight: '800', color: '#0F172A' },
-  description: { textAlign: 'center', color: '#64748B', marginBottom: 25 },
+  description: { textAlign: 'center', color: '#64748B', marginBottom: 25, fontSize: 14, lineHeight: 20 },
+  emailText: { fontWeight: '700', color: '#1E293B' },
   otpRow: { flexDirection: 'row', justifyContent: 'space-between', width: '100%', marginBottom: 30 },
-  otpBox: { width: 60, height: 65, backgroundColor: '#F8FAFC', borderRadius: 15, borderWidth: 1.5, borderColor: '#E2E8F0', fontSize: 24, fontWeight: 'bold', textAlign: 'center', color: '#1E293B' },
-  otpBoxActive: { borderColor: '#439acc', borderWidth: 2, backgroundColor: '#FFF' },
+  otpBox: {
+    width: 60,
+    height: 65,
+    backgroundColor: '#F8FAFC',
+    borderRadius: 15,
+    borderWidth: 1.5,
+    borderColor: '#E2E8F0',
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#1E293B',
+    textAlign: 'center',
+  },
+  otpBoxActive: { borderColor: '#439acc', backgroundColor: '#FFF', borderWidth: 2 },
   primaryBtn: { backgroundColor: '#439acc', width: '100%', padding: 18, borderRadius: 15, alignItems: 'center' },
   btnText: { color: 'white', fontWeight: 'bold', fontSize: 16 },
   resendContainer: { flexDirection: 'row', marginTop: 20, alignItems: 'center' },
   resendText: { color: '#64748B', fontSize: 14 },
   timerText: { color: '#1E293B', fontWeight: '700', fontSize: 14 },
+  resendBtn: { flexDirection: 'row', alignItems: 'center' }, // Added to center icon and text
   resendLink: { color: '#439acc', fontWeight: '800', fontSize: 14 },
 });
 
