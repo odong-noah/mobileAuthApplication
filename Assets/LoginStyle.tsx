@@ -117,11 +117,11 @@ export const styles = StyleSheet.create({
     marginTop: 32,
   },
   footerText: {
-    fontSize: 18,
+    fontSize: 16,
     color: '#eff2f5',
   },
   registerLink: {
-    fontSize: 18,
+    fontSize: 16,
     color: '#040311',
     fontWeight: '700',
   },
