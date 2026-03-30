@@ -8,16 +8,19 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  StatusBar
+  StatusBar,
+  StyleSheet
 } from 'react-native';
 
-import { styles } from '../Assets/LoginStyle.tsx'; 
-// Note: If ArrowRight still causes an error, change it to ChevronRight
+import { styles } from '../Assets/LoginStyle'; 
 import { Mail, Lock, Eye, EyeOff, ArrowRight } from 'lucide-react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../App';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import ForgotPasswordModal from '../Components/ForgotPassword.tsx';
+
+import ForgotPasswordModal from '../Components/ForgotPassword';
+import VerificationModal from '../Components/VerificationModal';
+import PasswordReset from '../Components/PasswordReset';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;
 
@@ -26,20 +29,46 @@ const LoginScreen = ({ navigation }: Props) => {
   const [password, setPassword] = useState('');
   const [secureText, setSecureText] = useState(true);
 
-  // Modal State
-  const [isModalVisible, setIsModalVisible] = useState(false);
+  // CONSOLIDATED STEP STATE
+  // 0: None, 1: ForgotEmail, 2: VerifyCode, 3: NewPassword
+  const [authStep, setAuthStep] = useState(0);
+  const [forgotEmail, setForgotEmail] = useState('');
+
+  // STEP 1 -> 2
+  const handleForgotSubmit = (enteredEmail: string) => {
+    setForgotEmail(enteredEmail); 
+    setAuthStep(2); // Direct switch
+  };
+
+  // STEP 2 -> 3
+  const handleVerifyCode = (code: string) => {
+    console.log("Verified:", code);
+    setAuthStep(3); // Direct switch
+  };
+
+  // STEP 3 -> Finish
+  const handlePasswordUpdate = (newPassword: string) => {
+    console.log("Final Password Update received:", newPassword); 
+    setAuthStep(0); // Close everything
+    setTimeout(() => {
+        Alert.alert("Success", "Password updated! You can now login.");
+    }, 500);
+  };
 
   const handleLogin = () => {
-    if (!email || !password) {
-      Alert.alert("Error", "Please fill in all fields");
-      return;
-    }
+    if (!email || !password) return Alert.alert("Error", "Fill all fields");
     Alert.alert("Success", "Welcome back!");
   };
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="dark-content" />
+
+      {/* CURTAIN OVERLAY: This stays up during the whole process to hide the login screen */}
+      {authStep > 0 && (
+        <View style={localStyles.fullScreenCurtain} />
+      )}
+
       <KeyboardAvoidingView 
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
         style={styles.container}
@@ -52,7 +81,6 @@ const LoginScreen = ({ navigation }: Props) => {
           </View>
 
           <View style={styles.card}>
-            {/* EMAIL FIELD */}
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Email Address</Text>
               <View style={styles.inputWrapper}>
@@ -69,7 +97,6 @@ const LoginScreen = ({ navigation }: Props) => {
               </View>
             </View>
 
-            {/* PASSWORD FIELD */}
             <View style={styles.inputGroup}>
               <View style={styles.labelRow}>
                   <Text style={styles.label}>Password</Text>
@@ -89,8 +116,7 @@ const LoginScreen = ({ navigation }: Props) => {
                 </TouchableOpacity>
               </View>
 
-              {/* FIXED TYPO HERE: setIsModalVisible */}
-              <TouchableOpacity onPress={() => setIsModalVisible(true)}>
+              <TouchableOpacity onPress={() => setAuthStep(1)}>
                 <Text style={styles.forgotText}>Forgot password?</Text>
               </TouchableOpacity>
             </View>
@@ -100,26 +126,47 @@ const LoginScreen = ({ navigation }: Props) => {
               <ArrowRight color="#FFF" size={20} style={{marginLeft: 8}} />
             </TouchableOpacity>
           </View>
+
           <View style={styles.footer}>
             <Text style={styles.footerText}>New here? </Text>
-            <TouchableOpacity 
-              onPress={() => navigation.replace('Register')} 
-              activeOpacity={0.7} 
-            >
+            <TouchableOpacity onPress={() => navigation.replace('Register')} activeOpacity={0.7}>
               <Text style={styles.registerLink}>Create an account</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
 
-      {/* ADDED THE MODAL COMPONENT HERE */}
+      {/* MODAL COMPONENTS - SWITCHED BY STEP */}
       <ForgotPasswordModal 
-        visible={isModalVisible} 
-        onClose={() => setIsModalVisible(false)} 
+        visible={authStep === 1} 
+        onClose={() => setAuthStep(0)} 
+        onSubmit={handleForgotSubmit}
+      />
+
+      <VerificationModal 
+        visible={authStep === 2}
+        email={forgotEmail}
+        title="Reset Password"
+        onClose={() => setAuthStep(0)}
+        onVerify={handleVerifyCode}
+      />
+
+      <PasswordReset 
+        visible={authStep === 3}
+        onClose={() => setAuthStep(0)}
+        onSubmit={handlePasswordUpdate}
       />
       
     </SafeAreaView>
   );
 };
+
+const localStyles = StyleSheet.create({
+  fullScreenCurtain: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: '#439acc',
+    zIndex: 10, // Higher than login UI, lower than Modals
+  }
+});
 
 export default LoginScreen;

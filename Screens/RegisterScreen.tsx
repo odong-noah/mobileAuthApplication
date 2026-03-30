@@ -28,19 +28,26 @@ const RegisterScreen = ({ navigation }: Props) => {
   const [secureText, setSecureText] = useState(true);
   const [isModalVisible, setIsModalVisible] = useState(false);
 
+  // STEP 1: User clicks Register
   const handleRegister = () => {
+    // Basic Validation
     if (!email || !password || !username) {
       Alert.alert("Error", "Please fill in all fields");
       return;
     }
+    
+    // Implementation: Dismiss keyboard and open modal
     Keyboard.dismiss();
-    setIsModalVisible(true);
+    setIsModalVisible(true); 
   };
 
-
+  // STEP 2: Verification Successful
   const handleVerifySuccess = (code: string) => {
-    console.log("Verified with:", code);
+    console.log("Verified with OTP:", code);
+    
+    // Implementation: Hide modal, alert user, and redirect
     setIsModalVisible(false);
+    Alert.alert("Account Verified", "You can now sign in.");
     navigation.replace('Login');
   };
 
@@ -142,9 +149,11 @@ const RegisterScreen = ({ navigation }: Props) => {
         </ScrollView>
       </KeyboardAvoidingView>
 
+      {/* VERIFICATION MODAL IMPLEMENTATION */}
       <VerificationModal 
         visible={isModalVisible} 
         email={email} 
+        title="Verify Account" // Passed title for Register context
         onClose={() => setIsModalVisible(false)} 
         onVerify={handleVerifySuccess} 
       />

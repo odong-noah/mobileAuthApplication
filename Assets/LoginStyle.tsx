@@ -63,11 +63,11 @@ export const styles = StyleSheet.create({
     marginBottom:14,
   },
   forgotText: {
-    fontSize: 13,
+    fontSize: 14,
     color: '#0F172A',
     fontWeight: '700',
     marginTop:16,
-    marginLeft:210,
+    marginLeft:205,
   },
   inputWrapper: {
     flexDirection: 'row',
