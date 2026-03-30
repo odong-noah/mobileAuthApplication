@@ -10,56 +10,44 @@ import {
   Alert,
   StatusBar
 } from 'react-native';
-import { Mail, Lock, Key, X} from 'lucide-react-native';
+import { Mail, X } from 'lucide-react-native';
 
+// FIX 1: Add onSubmit to the interface to remove the red line in LoginScreen
 interface ForgotPasswordModalProps {
   visible: boolean;
   onClose: () => void;
+  onSubmit: (email: string) => void; // This is the missing piece
 }
 
-const ForgotPasswordModal = ({ visible, onClose }: ForgotPasswordModalProps) => {
-  const [step, setStep] = useState(1); 
+const ForgotPasswordModal = ({ visible, onClose, onSubmit }: ForgotPasswordModalProps) => {
   const [email, setEmail] = useState('');
-  const [code, setCode] = useState('');
-  const [newPassword, setNewPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleVerifyEmail = async () => {
-    if (!email.includes('@')) return Alert.alert("Invalid Email", "Please enter a valid email address.");
+    // Basic validation
+    if (!email.includes('@')) {
+      return Alert.alert("Invalid Email", "Please enter a valid email address.");
+    }
+
     setLoading(true);
+    
+    // Simulate API call to send code
     setTimeout(() => {
       setLoading(false);
-      setStep(2);
-    }, 1500);
-  };
-
-  const handleVerifyCode = () => {
-    if (code.length !== 4) return Alert.alert("Error", "Please enter the 4-digit code.");
-    setStep(3);
-  };
-
-  const handleResetPassword = () => {
-    if (newPassword.length < 6) return Alert.alert("Error", "Password must be at least 6 characters.");
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      Alert.alert("Success", "Password updated successfully!");
-      handleClose();
+      
+      // FIX 2: Instead of setStep(2), we call onSubmit to trigger the next modal in LoginScreen
+      onSubmit(email); 
     }, 1500);
   };
 
   const handleClose = () => {
-    setStep(1);
     setEmail('');
-    setCode('');
-    setNewPassword('');
     onClose();
   };
 
   return (
-    <Modal visible={visible} animationType="slide" transparent={true} onRequestClose={handleClose}>
+    <Modal visible={visible} animationType="fade" transparent={true} onRequestClose={handleClose}>
       <View style={modalStyles.overlay}>
-        {/* Match status bar to the background color when modal is open */}
         <StatusBar backgroundColor="#439acc" barStyle="light-content" />
         
         <View style={modalStyles.container}>
@@ -67,70 +55,37 @@ const ForgotPasswordModal = ({ visible, onClose }: ForgotPasswordModalProps) => 
             <X color="#94A3B8" size={24} />
           </TouchableOpacity>
 
-          {step === 1 && (
-            <View style={modalStyles.content}>
-              <View style={modalStyles.iconCircle}><Mail color="#439acc" size={30} /></View>
-              <Text style={modalStyles.title}>Forgot Password</Text>
-              <Text style={modalStyles.description}>Enter your email to receive a 4-digit reset code.</Text>
-              
-              <TextInput 
-                style={modalStyles.input} 
-                placeholder="Email address" 
-                placeholderTextColor="#94A3B8"
-                value={email} 
-                onChangeText={setEmail}
-                keyboardType="email-address"
-                autoCapitalize="none"
-              />
-              
-              <TouchableOpacity style={modalStyles.primaryBtn} onPress={handleVerifyEmail}>
-                {loading ? <ActivityIndicator color="#FFF" /> : <Text style={modalStyles.btnText}>Send Code</Text>}
-              </TouchableOpacity>
+          <View style={modalStyles.content}>
+            <View style={modalStyles.iconCircle}>
+              <Mail color="#439acc" size={30} />
             </View>
-          )}
-
-          {step === 2 && (
-            <View style={modalStyles.content}>
-              <View style={modalStyles.iconCircle}><Key color="#439acc" size={30} /></View>
-              <Text style={modalStyles.title}>Verify Email</Text>
-              <Text style={modalStyles.description}>Enter the 4-digit code sent to {email}</Text>
-              
-              <TextInput 
-                style={[modalStyles.input, { textAlign: 'center', fontSize: 28, letterSpacing: 10 }]} 
-                placeholder="0000" 
-                placeholderTextColor="#CBD5E1"
-                value={code} 
-                onChangeText={setCode}
-                keyboardType="number-pad"
-                maxLength={4}
-              />
-              
-              <TouchableOpacity style={modalStyles.primaryBtn} onPress={handleVerifyCode}>
-                <Text style={modalStyles.btnText}>Verify Code</Text>
-              </TouchableOpacity>
-            </View>
-          )}
-
-          {step === 3 && (
-            <View style={modalStyles.content}>
-              <View style={modalStyles.iconCircle}><Lock color="#439acc" size={30} /></View>
-              <Text style={modalStyles.title}>New Password</Text>
-              <Text style={modalStyles.description}>Set a new password for your account.</Text>
-              
-              <TextInput 
-                style={modalStyles.input} 
-                placeholder="New Password" 
-                placeholderTextColor="#94A3B8"
-                value={newPassword} 
-                onChangeText={setNewPassword}
-                secureTextEntry
-              />
-              
-              <TouchableOpacity style={modalStyles.primaryBtn} onPress={handleResetPassword}>
-                {loading ? <ActivityIndicator color="#FFF" /> : <Text style={modalStyles.btnText}>Update Password</Text>}
-              </TouchableOpacity>
-            </View>
-          )}
+            <Text style={modalStyles.title}>Forgot Password</Text>
+            <Text style={modalStyles.description}>
+              Enter the email address associated with your account to receive a reset code.
+            </Text>
+            
+            <TextInput 
+              style={[modalStyles.input, email ? {borderColor: '#439acc'} : null]} 
+              placeholder="Email address" 
+              placeholderTextColor="#94A3B8"
+              value={email} 
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+            />
+            
+            <TouchableOpacity 
+              style={[modalStyles.primaryBtn, { opacity: email ? 1 : 0.7 }]} 
+              onPress={handleVerifyEmail}
+              disabled={loading || !email}
+            >
+              {loading ? (
+                <ActivityIndicator color="#FFF" />
+              ) : (
+                <Text style={modalStyles.btnText}>Send Code</Text>
+              )}
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
     </Modal>
@@ -140,7 +95,7 @@ const ForgotPasswordModal = ({ visible, onClose }: ForgotPasswordModalProps) => 
 const modalStyles = StyleSheet.create({
   overlay: { 
     flex: 1, 
-    backgroundColor: '#439acc', // Your specific brand color
+    backgroundColor: 'rgba(67, 154, 204, 0.98)', // Using your brand color with slight transparency
     justifyContent: 'center', 
     alignItems: 'center' 
   },
@@ -149,11 +104,6 @@ const modalStyles = StyleSheet.create({
     backgroundColor: '#FFFFFF', 
     borderRadius: 30, 
     padding: 24, 
-    // Shadow for depth
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.15,
-    shadowRadius: 15,
     elevation: 10,
   },
   closeBtn: { 
@@ -191,11 +141,6 @@ const modalStyles = StyleSheet.create({
     padding: 18, 
     borderRadius: 16, 
     alignItems: 'center',
-    shadowColor: '#439acc',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 5
   },
   btnText: { color: 'white', fontWeight: 'bold', fontSize: 18 }
 });

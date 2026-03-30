@@ -10,7 +10,6 @@ import {
   StatusBar,
   Keyboard
 } from 'react-native';
-// CHANGED: RefreshCcw to RefreshCw (or RotateCw)
 import { ShieldCheck, X, RefreshCw } from 'lucide-react-native';
 
 interface VerificationModalProps {
@@ -18,9 +17,16 @@ interface VerificationModalProps {
   onClose: () => void;
   email: string;
   onVerify: (code: string) => void;
+  title?: string; // Prop is defined here
 }
 
-const VerificationModal = ({ visible, onClose, email, onVerify }: VerificationModalProps) => {
+const VerificationModal = ({ 
+  visible, 
+  onClose, 
+  email, 
+  onVerify, 
+  title = "Verify Email" // Default value set here
+}: VerificationModalProps) => {
   const [code, setCode] = useState(['', '', '', '']);
   const [loading, setLoading] = useState(false);
   const [timer, setTimer] = useState(59);
@@ -94,7 +100,9 @@ const VerificationModal = ({ visible, onClose, email, onVerify }: VerificationMo
               <ShieldCheck color="#439acc" size={36} />
             </View>
             
-            <Text style={styles.title}>Verify Email</Text>
+            {/* FIXED: Replaced hardcoded text with the title prop */}
+            <Text style={styles.title}>{title}</Text>
+            
             <Text style={styles.description}>
               Enter the code sent to{"\n"}
               <Text style={styles.emailText}>{email || 'your email'}</Text>
@@ -122,7 +130,11 @@ const VerificationModal = ({ visible, onClose, email, onVerify }: VerificationMo
               onPress={handleSubmit}
               disabled={loading || code.join('').length < 4}
             >
-              {loading ? <ActivityIndicator color="#FFF" /> : <Text style={styles.btnText}>Verify Account</Text>}
+              {loading ? (
+                <ActivityIndicator color="#FFF" />
+              ) : (
+                <Text style={styles.btnText}>Verify Code</Text>
+              )}
             </TouchableOpacity>
 
             <View style={styles.resendContainer}>
@@ -131,7 +143,6 @@ const VerificationModal = ({ visible, onClose, email, onVerify }: VerificationMo
                 <Text style={styles.timerText}>Resend in {timer}s</Text>
               ) : (
                 <TouchableOpacity onPress={() => setTimer(59)} style={styles.resendBtn}>
-                   {/* UPDATED ICON USAGE HERE */}
                   <RefreshCw size={14} color="#439acc" style={{marginRight: 5}} />
                   <Text style={styles.resendLink}>Resend Code</Text>
                 </TouchableOpacity>
@@ -145,7 +156,7 @@ const VerificationModal = ({ visible, onClose, email, onVerify }: VerificationMo
 };
 
 const styles = StyleSheet.create({
-  overlay: { flex: 1, backgroundColor: '#439acc', justifyContent: 'center', alignItems: 'center' },
+  overlay: { flex: 1, backgroundColor: 'rgba(67, 154, 204, 0.95)', justifyContent: 'center', alignItems: 'center' },
   container: { width: '90%', backgroundColor: '#FFFFFF', borderRadius: 30, padding: 24, elevation: 10 },
   closeBtn: { alignSelf: 'flex-end', backgroundColor: '#F8FAFC', padding: 6, borderRadius: 20 },
   content: { alignItems: 'center' },
@@ -172,7 +183,7 @@ const styles = StyleSheet.create({
   resendContainer: { flexDirection: 'row', marginTop: 20, alignItems: 'center' },
   resendText: { color: '#64748B', fontSize: 14 },
   timerText: { color: '#1E293B', fontWeight: '700', fontSize: 14 },
-  resendBtn: { flexDirection: 'row', alignItems: 'center' }, // Added to center icon and text
+  resendBtn: { flexDirection: 'row', alignItems: 'center' },
   resendLink: { color: '#439acc', fontWeight: '800', fontSize: 14 },
 });
 
