@@ -57,6 +57,9 @@ const PasswordReset = ({ visible, onClose, onSubmit }: PasswordResetProps) => {
     }, 1500);
   };
 
+  // Logic helper for button state
+  const isFormValid = password && confirmPassword && !loading;
+
   return (
     <Modal 
       visible={visible} 
@@ -124,12 +127,13 @@ const PasswordReset = ({ visible, onClose, onSubmit }: PasswordResetProps) => {
             {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
             <TouchableOpacity 
+              // FIXED: Removed the inline style object { opacity: ..., marginTop: ... }
               style={[
                 styles.primaryBtn, 
-                { opacity: (password && confirmPassword && !loading) ? 1 : 0.6, marginTop: 10 }
+                !isFormValid && styles.btnDisabled
               ]} 
               onPress={handleReset}
-              disabled={loading || !password || !confirmPassword}
+              disabled={!isFormValid}
             >
               {loading ? (
                 <ActivityIndicator color="#FFF" />
@@ -224,7 +228,12 @@ const styles = StyleSheet.create({
     width: '100%', 
     padding: 18, 
     borderRadius: 15, 
-    alignItems: 'center' 
+    alignItems: 'center',
+    marginTop: 10 // FIXED: Moved from inline style
+  },
+  // NEW STYLE: For the disabled/loading button state
+  btnDisabled: {
+    opacity: 0.6,
   },
   btnText: { 
     color: 'white', 

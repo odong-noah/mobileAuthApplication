@@ -12,11 +12,10 @@ import {
 } from 'react-native';
 import { Mail, X } from 'lucide-react-native';
 
-// FIX 1: Add onSubmit to the interface to remove the red line in LoginScreen
 interface ForgotPasswordModalProps {
   visible: boolean;
   onClose: () => void;
-  onSubmit: (email: string) => void; // This is the missing piece
+  onSubmit: (email: string) => void;
 }
 
 const ForgotPasswordModal = ({ visible, onClose, onSubmit }: ForgotPasswordModalProps) => {
@@ -24,18 +23,13 @@ const ForgotPasswordModal = ({ visible, onClose, onSubmit }: ForgotPasswordModal
   const [loading, setLoading] = useState(false);
 
   const handleVerifyEmail = async () => {
-    // Basic validation
     if (!email.includes('@')) {
       return Alert.alert("Invalid Email", "Please enter a valid email address.");
     }
 
     setLoading(true);
-    
-    // Simulate API call to send code
     setTimeout(() => {
       setLoading(false);
-      
-      // FIX 2: Instead of setStep(2), we call onSubmit to trigger the next modal in LoginScreen
       onSubmit(email); 
     }, 1500);
   };
@@ -65,7 +59,8 @@ const ForgotPasswordModal = ({ visible, onClose, onSubmit }: ForgotPasswordModal
             </Text>
             
             <TextInput 
-              style={[modalStyles.input, email ? {borderColor: '#439acc'} : null]} 
+              // FIXED: Removed inline borderColor logic
+              style={[modalStyles.input, email && modalStyles.inputActive]} 
               placeholder="Email address" 
               placeholderTextColor="#94A3B8"
               value={email} 
@@ -75,7 +70,8 @@ const ForgotPasswordModal = ({ visible, onClose, onSubmit }: ForgotPasswordModal
             />
             
             <TouchableOpacity 
-              style={[modalStyles.primaryBtn, { opacity: email ? 1 : 0.7 }]} 
+              // FIXED: Removed inline opacity logic
+              style={[modalStyles.primaryBtn, !email && modalStyles.btnDisabled]} 
               onPress={handleVerifyEmail}
               disabled={loading || !email}
             >
@@ -95,7 +91,7 @@ const ForgotPasswordModal = ({ visible, onClose, onSubmit }: ForgotPasswordModal
 const modalStyles = StyleSheet.create({
   overlay: { 
     flex: 1, 
-    backgroundColor: 'rgba(67, 154, 204, 0.98)', // Using your brand color with slight transparency
+    backgroundColor: 'rgba(67, 154, 204, 0.98)', 
     justifyContent: 'center', 
     alignItems: 'center' 
   },
@@ -135,12 +131,21 @@ const modalStyles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#E2E8F0' 
   },
+  // NEW STYLE: For when the input has text
+  inputActive: {
+    borderColor: '#439acc',
+    borderWidth: 2,
+  },
   primaryBtn: { 
     backgroundColor: '#439acc', 
     width: '100%', 
     padding: 18, 
     borderRadius: 16, 
     alignItems: 'center',
+  },
+  // NEW STYLE: For when the button is disabled
+  btnDisabled: {
+    opacity: 0.7,
   },
   btnText: { color: 'white', fontWeight: 'bold', fontSize: 18 }
 });

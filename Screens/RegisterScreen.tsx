@@ -9,7 +9,8 @@ import {
   Platform,
   ScrollView,
   StatusBar,
-  Keyboard
+  Keyboard,
+  StyleSheet
 } from 'react-native';
 
 import { styles } from '../Assets/RegisterStyle'; 
@@ -26,35 +27,43 @@ const RegisterScreen = ({ navigation }: Props) => {
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
   const [secureText, setSecureText] = useState(true);
+  
+  // MODAL STATE
   const [isModalVisible, setIsModalVisible] = useState(false);
 
   // STEP 1: User clicks Register
   const handleRegister = () => {
-    // Basic Validation
     if (!email || !password || !username) {
       Alert.alert("Error", "Please fill in all fields");
       return;
     }
     
-    // Implementation: Dismiss keyboard and open modal
     Keyboard.dismiss();
     setIsModalVisible(true); 
   };
 
   // STEP 2: Verification Successful
   const handleVerifySuccess = (code: string) => {
-    console.log("Verified with OTP:", code);
+    console.log("Account verified with code:", code);
     
-    // Implementation: Hide modal, alert user, and redirect
     setIsModalVisible(false);
-    Alert.alert("Account Verified", "You can now sign in.");
-    navigation.replace('Login');
+    
+    // Small timeout ensures modal is closed before showing the alert
+    setTimeout(() => {
+        Alert.alert("Account Verified", "Your account is now active. Please sign in.");
+        navigation.replace('Login');
+    }, 500);
   };
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="dark-content" />
       
+      {/* CURTAIN OVERLAY: Hides the form while verification is active */}
+      {isModalVisible && (
+        <View style={localStyles.fullScreenCurtain} />
+      )}
+
       <KeyboardAvoidingView 
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
         style={styles.container}
@@ -132,7 +141,8 @@ const RegisterScreen = ({ navigation }: Props) => {
               activeOpacity={0.9}
             >
               <Text style={styles.registerButtonText}>Create Account</Text>
-              <ArrowRight color="#FFF" size={20} style={{ marginLeft: 8 }} />
+              {/* FIXED: Moved inline marginLeft to localStyles */}
+              <ArrowRight color="#FFF" size={20} style={localStyles.buttonIcon} />
             </TouchableOpacity>
           </View>
 
@@ -149,11 +159,10 @@ const RegisterScreen = ({ navigation }: Props) => {
         </ScrollView>
       </KeyboardAvoidingView>
 
-      {/* VERIFICATION MODAL IMPLEMENTATION */}
       <VerificationModal 
         visible={isModalVisible} 
         email={email} 
-        title="Verify Account" // Passed title for Register context
+        title="Verify Account" 
         onClose={() => setIsModalVisible(false)} 
         onVerify={handleVerifySuccess} 
       />
@@ -161,5 +170,16 @@ const RegisterScreen = ({ navigation }: Props) => {
     </SafeAreaView>
   );
 };
+
+const localStyles = StyleSheet.create({
+  fullScreenCurtain: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: '#439acc',
+    zIndex: 10,
+  },
+  buttonIcon: {
+    marginLeft: 8,
+  }
+});
 
 export default RegisterScreen;

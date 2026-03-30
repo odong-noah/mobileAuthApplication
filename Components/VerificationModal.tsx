@@ -17,7 +17,7 @@ interface VerificationModalProps {
   onClose: () => void;
   email: string;
   onVerify: (code: string) => void;
-  title?: string; // Prop is defined here
+  title?: string;
 }
 
 const VerificationModal = ({ 
@@ -25,7 +25,7 @@ const VerificationModal = ({
   onClose, 
   email, 
   onVerify, 
-  title = "Verify Email" // Default value set here
+  title = "Verify Email" 
 }: VerificationModalProps) => {
   const [code, setCode] = useState(['', '', '', '']);
   const [loading, setLoading] = useState(false);
@@ -80,6 +80,8 @@ const VerificationModal = ({
     }
   };
 
+  const isCodeComplete = code.join('').length === 4;
+
   return (
     <Modal 
       visible={visible} 
@@ -100,7 +102,6 @@ const VerificationModal = ({
               <ShieldCheck color="#439acc" size={36} />
             </View>
             
-            {/* FIXED: Replaced hardcoded text with the title prop */}
             <Text style={styles.title}>{title}</Text>
             
             <Text style={styles.description}>
@@ -126,9 +127,10 @@ const VerificationModal = ({
             </View>
 
             <TouchableOpacity 
-              style={[styles.primaryBtn, { opacity: code.join('').length === 4 ? 1 : 0.6 }]} 
+              // FIXED: Removed inline opacity style
+              style={[styles.primaryBtn, !isCodeComplete && styles.btnDisabled]} 
               onPress={handleSubmit}
-              disabled={loading || code.join('').length < 4}
+              disabled={loading || !isCodeComplete}
             >
               {loading ? (
                 <ActivityIndicator color="#FFF" />
@@ -143,7 +145,8 @@ const VerificationModal = ({
                 <Text style={styles.timerText}>Resend in {timer}s</Text>
               ) : (
                 <TouchableOpacity onPress={() => setTimer(59)} style={styles.resendBtn}>
-                  <RefreshCw size={14} color="#439acc" style={{marginRight: 5}} />
+                  {/* FIXED: Removed inline marginRight style */}
+                  <RefreshCw size={14} color="#439acc" style={styles.refreshIcon} />
                   <Text style={styles.resendLink}>Resend Code</Text>
                 </TouchableOpacity>
               )}
@@ -179,11 +182,19 @@ const styles = StyleSheet.create({
   },
   otpBoxActive: { borderColor: '#439acc', backgroundColor: '#FFF', borderWidth: 2 },
   primaryBtn: { backgroundColor: '#439acc', width: '100%', padding: 18, borderRadius: 15, alignItems: 'center' },
+  // NEW STYLE: For the disabled button state
+  btnDisabled: {
+    opacity: 0.6,
+  },
   btnText: { color: 'white', fontWeight: 'bold', fontSize: 16 },
   resendContainer: { flexDirection: 'row', marginTop: 20, alignItems: 'center' },
   resendText: { color: '#64748B', fontSize: 14 },
   timerText: { color: '#1E293B', fontWeight: '700', fontSize: 14 },
   resendBtn: { flexDirection: 'row', alignItems: 'center' },
+  // NEW STYLE: For the refresh icon margin
+  refreshIcon: {
+    marginRight: 5,
+  },
   resendLink: { color: '#439acc', fontWeight: '800', fontSize: 14 },
 });
 
