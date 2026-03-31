@@ -1,4 +1,10 @@
 import { StyleSheet, Platform } from 'react-native';
+const COLORS = {
+  primary: "#439acc",
+  error: "#EF4444",
+  placeholder: "#94A3B8",
+  white: "#FFF"
+};
 
 export const styles = StyleSheet.create({
   safeArea: {
@@ -121,5 +127,30 @@ export const styles = StyleSheet.create({
     fontSize: 16,
     color: '#0e0e10',
     fontWeight: '700',
+  },
+  fullScreenCurtain: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: '#439acc',
+    zIndex: 10,
+  },
+  buttonIcon: {
+    marginLeft: 8,
+  },
+
+   inputErrorBorder: {
+    borderColor: COLORS.error,
+    borderWidth: 1.2,
+  },
+  errorContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 6,
+    paddingLeft: 4,
+  },
+  errorText: {
+    color: COLORS.error,
+    fontSize: 12,
+    fontWeight: '500',
+    marginLeft: 6,
   },
 });

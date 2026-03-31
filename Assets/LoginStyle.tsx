@@ -125,4 +125,14 @@ export const styles = StyleSheet.create({
     color: '#040311',
     fontWeight: '700',
   },
+
+   fullScreenCurtain: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: '#439acc',
+    zIndex: 10,
+  },
+  // NEW STYLE: Added to resolve the ESLint warning
+  buttonIcon: {
+    marginLeft: 8,
+  }
 });
