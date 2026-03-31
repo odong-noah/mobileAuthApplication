@@ -9,7 +9,6 @@ import {
   Platform,
   ScrollView,
   StatusBar,
-  StyleSheet
 } from 'react-native';
 
 import { styles } from '../Assets/LoginStyle'; 
@@ -30,26 +29,22 @@ const LoginScreen = ({ navigation }: Props) => {
   const [secureText, setSecureText] = useState(true);
 
   // CONSOLIDATED STEP STATE
-  // 0: None, 1: ForgotEmail, 2: VerifyCode, 3: NewPassword
   const [authStep, setAuthStep] = useState(0);
   const [forgotEmail, setForgotEmail] = useState('');
 
-  // STEP 1 -> 2
   const handleForgotSubmit = (enteredEmail: string) => {
     setForgotEmail(enteredEmail); 
-    setAuthStep(2); // Direct switch
+    setAuthStep(2); 
   };
 
-  // STEP 2 -> 3
   const handleVerifyCode = (code: string) => {
     console.log("Verified:", code);
-    setAuthStep(3); // Direct switch
+    setAuthStep(3); 
   };
 
-  // STEP 3 -> Finish
   const handlePasswordUpdate = (newPassword: string) => {
     console.log("Final Password Update received:", newPassword); 
-    setAuthStep(0); // Close everything
+    setAuthStep(0); 
     setTimeout(() => {
         Alert.alert("Success", "Password updated! You can now login.");
     }, 500);
@@ -64,9 +59,8 @@ const LoginScreen = ({ navigation }: Props) => {
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="dark-content" />
 
-      {/* CURTAIN OVERLAY: This stays up during the whole process to hide the login screen */}
       {authStep > 0 && (
-        <View style={localStyles.fullScreenCurtain} />
+        <View style={styles.fullScreenCurtain} />
       )}
 
       <KeyboardAvoidingView 
@@ -123,7 +117,8 @@ const LoginScreen = ({ navigation }: Props) => {
 
             <TouchableOpacity style={styles.loginButton} onPress={handleLogin} activeOpacity={0.9}>
               <Text style={styles.loginButtonText}>Sign In</Text>
-              <ArrowRight color="#FFF" size={20} style={{marginLeft: 8}} />
+              {/* FIXED: Removed inline style {{marginLeft: 8}} */}
+              <ArrowRight color="#FFF" size={20} style={styles.buttonIcon} />
             </TouchableOpacity>
           </View>
 
@@ -136,7 +131,6 @@ const LoginScreen = ({ navigation }: Props) => {
         </ScrollView>
       </KeyboardAvoidingView>
 
-      {/* MODAL COMPONENTS - SWITCHED BY STEP */}
       <ForgotPasswordModal 
         visible={authStep === 1} 
         onClose={() => setAuthStep(0)} 
@@ -160,13 +154,5 @@ const LoginScreen = ({ navigation }: Props) => {
     </SafeAreaView>
   );
 };
-
-const localStyles = StyleSheet.create({
-  fullScreenCurtain: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: '#439acc',
-    zIndex: 10, // Higher than login UI, lower than Modals
-  }
-});
 
 export default LoginScreen;
