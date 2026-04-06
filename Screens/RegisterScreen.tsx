@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -10,7 +10,8 @@ import {
   ScrollView,
   StatusBar,
   Keyboard,
-  ActivityIndicator, // Added for loading spinner
+  ActivityIndicator,
+  StyleSheet,
 } from 'react-native';
 
 import { styles } from '../Assets/RegisterStyle'; 
@@ -19,6 +20,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../App';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import VerificationModal from '../Components/VerificationModal';
+import { useFocusEffect } from '@react-navigation/native';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Register'>;
 
@@ -29,12 +31,15 @@ const COLORS = {
   white: "#FFF"
 };
 
+/**
+ * Helper component for error messages (Moved outside for performance)
+ */
 const ErrorLabel = ({ message }: { message?: string }) => {
   if (!message) return null;
   return (
-    <View style={styles.errorContainer}>
+    <View style={localStyles.errorLabelContainer}>
       <AlertCircle color={COLORS.error} size={14} />
-      <Text style={styles.errorText}>{message}</Text>
+      <Text style={localStyles.errorLabelText}>{message}</Text>
     </View>
   );
 };
@@ -44,12 +49,29 @@ const RegisterScreen = ({ navigation }: Props) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [secureText, setSecureText] = useState(true);
-  const [isLoading, setIsLoading] = useState(false); // State for API loading
-  
+  const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [isModalVisible, setIsModalVisible] = useState(false);
 
-  // VALIDATION LOGIC
+  // Clears fields when the user navigates back to this screen
+  useFocusEffect(
+    useCallback(() => {
+      return () => {
+        setUsername('');
+        setEmail('');
+        setPassword('');
+        setErrors({});
+      };
+    }, [])
+  );
+
+  const resetForm = () => {
+    setUsername('');
+    setEmail('');
+    setPassword('');
+    setErrors({});
+  };
+
   const validateForm = () => {
     let newErrors: { [key: string]: string } = {};
 
@@ -73,19 +95,18 @@ const RegisterScreen = ({ navigation }: Props) => {
     } else if (password.length < 8) {
       newErrors.password = "Password must be at least 8 characters long";
     } else if (!passwordRegex.test(password)) {
-      newErrors.password = "Mix of Upper, Lower, numbers and special characters";
+      newErrors.password = "Must include Upper, Lower, Number & Special character";
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  // API CALL LOGIC
-  const handleRegister = async () => {
+ const handleRegisterInitiate = async () => {
     const isAllEmpty = !username.trim() && !email.trim() && !password.trim();
 
     if (isAllEmpty) {
-      Alert.alert("Registration Failed", "All fields are empty. Please enter your details.");
+      Alert.alert("Registration Failed", "All fields are empty.");
       return;
     }
 
@@ -94,51 +115,67 @@ const RegisterScreen = ({ navigation }: Props) => {
       setIsLoading(true);
 
       try {
-        // Handle IP based on platform (10.0.2.2 for Android Emulator, 127.0.0.1 for iOS)
         const baseUrl = Platform.OS === 'android' ? 'http://10.0.2.2:8000' : 'http://127.0.0.1:8000';
         
-        const response = await fetch(`${baseUrl}/api/register`, {
+        const response = await fetch(`${baseUrl}/api/send-otp`, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
+          headers: { 
+            'Content-Type': 'application/json', 
+            'Accept': 'application/json' 
           },
-          body: JSON.stringify({
-            username: username,
+          // FIX: Add the 'type' field here
+          body: JSON.stringify({ 
             email: email,
-            password: password,
+            type: 'register' 
           }),
         });
 
         const result = await response.json();
 
-        if (response.status === 201) {
-          // Success: Firebase Account Created via Laravel
+        if (response.ok) {
           setIsModalVisible(true); 
-        } else if (response.status === 422) {
-          // Backend Validation Failed (e.g. email already exists in Firebase)
-          const backendErrors = result.errors;
-          const firstError = Object.values(backendErrors)[0] as string[];
-          Alert.alert("Invalid Input", firstError[0]);
         } else {
-          // Other Server Errors
-          Alert.alert("Error", result.message || "An unexpected error occurred.");
+          // If status is 422 (Validation error), Laravel returns specific messages
+          const errorMessage = result.message || result.errors?.email?.[0] || "Could not send verification code.";
+          Alert.alert("Error", errorMessage);
         }
-      } catch {
-        Alert.alert("Connection Error", "Could not connect to the server. Ensure Laravel is running.");
+      } catch{
+        Alert.alert("Connection Error", "Ensure Laravel is running.");
       } finally {
         setIsLoading(false);
       }
     }
   };
 
-  const handleVerifySuccess = (code: string) => {
-    console.log("Verification Successful! Security Code:", code);
-    setIsModalVisible(false);
-    setTimeout(() => {
-        Alert.alert("Success", "Account Verified!");
-        navigation.replace('Login');
-    }, 500);
+  const handleVerifySuccess = async (code: string) => {
+    setIsLoading(true);
+    try {
+      const baseUrl = Platform.OS === 'android' ? 'http://10.0.2.2:8000' : 'http://127.0.0.1:8000';
+      
+      // We send all credentials + the OTP for final verification and storage
+      const response = await fetch(`${baseUrl}/api/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({ username, email, password, otp: code }),
+      });
+
+      const result = await response.json();
+
+      if (response.status === 201) {
+        setIsModalVisible(false);
+        resetForm(); // Clear fields
+        setTimeout(() => {
+          Alert.alert("Success", "Account Verified & Created!");
+          navigation.replace('Login');
+        }, 500);
+      } else {
+        Alert.alert("Verification Failed", result.message || "Invalid Code.");
+      }
+    } catch  {
+      Alert.alert("Error", "Final registration failed.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -167,7 +204,7 @@ const RegisterScreen = ({ navigation }: Props) => {
             {/* USERNAME */}
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Username</Text>
-              <View style={[styles.inputWrapper, errors.username ? styles.inputErrorBorder : null]}>
+              <View style={[styles.inputWrapper, errors.username ? localStyles.inputError : null]}>
                 <User color={errors.username ? COLORS.error : COLORS.primary} size={20} style={styles.inputIcon} />
                 <TextInput
                   placeholder="Enter username"
@@ -188,7 +225,7 @@ const RegisterScreen = ({ navigation }: Props) => {
             {/* EMAIL */}
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Email Address</Text>
-              <View style={[styles.inputWrapper, errors.email ? styles.inputErrorBorder : null]}>
+              <View style={[styles.inputWrapper, errors.email ? localStyles.inputError : null]}>
                 <Mail color={errors.email ? COLORS.error : COLORS.primary} size={20} style={styles.inputIcon} />
                 <TextInput
                   placeholder="Enter valid email"
@@ -210,7 +247,7 @@ const RegisterScreen = ({ navigation }: Props) => {
             {/* PASSWORD */}
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Password</Text>
-              <View style={[styles.inputWrapper, errors.password ? styles.inputErrorBorder : null]}>
+              <View style={[styles.inputWrapper, errors.password ? localStyles.inputError : null]}>
                 <Lock color={errors.password ? COLORS.error : COLORS.primary} size={20} style={styles.inputIcon} />
                 <TextInput
                   placeholder="Enter strong password"
@@ -236,8 +273,8 @@ const RegisterScreen = ({ navigation }: Props) => {
             </View>
 
             <TouchableOpacity 
-              style={[styles.registerButton, isLoading && { opacity: 0.7 }]} 
-              onPress={handleRegister} 
+              style={[styles.registerButton, isLoading && localStyles.btnDisabled]} 
+              onPress={handleRegisterInitiate} 
               activeOpacity={0.9}
               disabled={isLoading}
             >
@@ -271,5 +308,26 @@ const RegisterScreen = ({ navigation }: Props) => {
     </SafeAreaView>
   );
 };
+
+const localStyles = StyleSheet.create({
+  errorLabelContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 4,
+    marginLeft: 4,
+  },
+  errorLabelText: {
+    color: COLORS.error,
+    fontSize: 12,
+    marginLeft: 4,
+  },
+  btnDisabled: {
+    opacity: 0.7,
+  },
+  inputError: {
+    borderColor: COLORS.error,
+    borderWidth: 1,
+  }
+});
 
 export default RegisterScreen;
