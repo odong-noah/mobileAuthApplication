@@ -28,10 +28,10 @@ Before starting, ensure you have followed the official [React Native Environment
 ## ⚙️ Getting Started
 
 ### 1. Install Dependencies
-Navigate to the project root and run:
+#Navigate to the project root and run:
 
 npm install
-# OR
+OR
 yarn install
 
 2. Configure API Connection
@@ -45,14 +45,15 @@ Physical Device: Ensure your phone is on the same WiFi as your PC and update the
 Step 1: Start Metro
 Metro is the JavaScript bundler for React Native. Start it in a dedicated terminal:
 npm start
-# OR
+OR
 yarn start
 
 Step 2: Build and Run
 Android
 Ensure your emulator is running or a device is connected:
+
 npm run android
-# OR
+OR
 yarn android
 
 IOS
@@ -60,5 +61,5 @@ First, install the native pods (macOS only):
 cd ios && pod install && cd 
 Then run the app:
 npm run ios
-# OR
+ OR
 yarn ios
