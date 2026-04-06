@@ -1,97 +1,64 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# ChatApp Mobile (React Native)
 
-# Getting Started
+This is the official mobile frontend for the **ChatApp** platform, built using **React Native** and **TypeScript**. It features a professional authentication suite including Registration with Email OTP, Secure Login, and a multi-step Forgot Password flow.
 
-> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
+---
 
-## Step 1: Start Metro
+## 🚀 Key Features
 
-First, you will need to run **Metro**, the JavaScript build tool for React Native.
+- **Professional UI**: Built with a clean, card-based design using `lucide-react-native` icons.
+- **Email Verification**: Integrated OTP (One-Time Password) modal for account activation.
+- **Security Logic**: Real-time Regex validation for usernames and high-entropy passwords.
+- **Smooth UX**: Loading spinners, disabled states during API calls, and automatic keyboard management.
+- **Cross-Platform**: Optimized for both Android and iOS environments.
 
-To start the Metro dev server, run the following command from the root of your React Native project:
+---
 
-```sh
-# Using npm
+## 🛠 Prerequisites
+
+Before starting, ensure you have followed the official [React Native Environment Setup](https://reactnative.dev/docs/set-up-your-environment) guide.
+
+- **Node.js**: v18 or newer
+- **Java SDK**: v17 (for Android)
+- **Xcode**: Latest version (for iOS)
+- **CocoaPods**: For iOS dependency management
+
+---
+
+## ⚙️ Getting Started
+
+### 1. Install Dependencies
+Navigate to the project root and run:
+
+npm install
+# OR
+yarn install
+
+2. Configure API Connection
+   
+This app communicates with the Laravel AuthBackend. To ensure the connection works:
+Android Emulator: Uses http://10.0.2.2:8000 (Automated in code).
+iOS Simulator: Uses http://127.0.0.1:8000 (Automated in code).
+Physical Device: Ensure your phone is on the same WiFi as your PC and update the baseUrl in your screens to your computer's local IP (e.g., 192.168.1.x).
+
+🏃‍♂️ Running the App
+Step 1: Start Metro
+Metro is the JavaScript bundler for React Native. Start it in a dedicated terminal:
 npm start
-
-# OR using Yarn
+# OR
 yarn start
-```
 
-## Step 2: Build and run your app
-
-With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
-
-### Android
-
-```sh
-# Using npm
+Step 2: Build and Run
+Android
+Ensure your emulator is running or a device is connected:
 npm run android
-
-# OR using Yarn
+# OR
 yarn android
-```
 
-### iOS
-
-For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
-
-The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
-
-```sh
-bundle install
-```
-
-Then, and every time you update your native dependencies, run:
-
-```sh
-bundle exec pod install
-```
-
-For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
-
-```sh
-# Using npm
+IOS
+First, install the native pods (macOS only):
+cd ios && pod install && cd 
+Then run the app:
 npm run ios
-
-# OR using Yarn
+# OR
 yarn ios
-```
-
-If everything is set up correctly, you should see your new app running in the Android Emulator, iOS Simulator, or your connected device.
-
-This is one way to run your app — you can also build it directly from Android Studio or Xcode.
-
-## Step 3: Modify your app
-
-Now that you have successfully run the app, let's make changes!
-
-Open `App.tsx` in your text editor of choice and make some changes. When you save, your app will automatically update and reflect these changes — this is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
-
-When you want to forcefully reload, for example to reset the state of your app, you can perform a full reload:
-
-- **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Dev Menu**, accessed via <kbd>Ctrl</kbd> + <kbd>M</kbd> (Windows/Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (macOS).
-- **iOS**: Press <kbd>R</kbd> in iOS Simulator.
-
-## Congratulations! :tada:
-
-You've successfully run and modified your React Native App. :partying_face:
-
-### Now what?
-
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
-
-# Troubleshooting
-
-If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
-
-# Learn More
-
-To learn more about React Native, take a look at the following resources:
-
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
